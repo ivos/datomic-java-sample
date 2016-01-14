@@ -1,0 +1,25 @@
+<configuration>
+
+	<!-- prevent per-message overhead for jul logging calls, e.g. Hornet -->
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+		<resetJUL>true</resetJUL>
+	</contextListener>
+
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{řé} - %msg%n</Pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.github.ivos" level="debug"/>
+
+	<!-- comment this out to see logging of segment->object cache conversions -->
+	<logger name="datomic.domain" level="info"/>
+
+	<!-- comment this out to see detailed logging of storage access -->
+	<logger name="datomic.kv-cluster" level="info"/>
+
+	<root level="warn">
+		<appender-ref ref="stdout"/>
+	</root>
+</configuration>
