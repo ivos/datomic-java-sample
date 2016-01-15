@@ -3,13 +3,10 @@ package com.github.ivos.datomic.utils;
 import datomic.Connection;
 import datomic.Database;
 import datomic.Entity;
+import datomic.Peer;
 
 import java.util.Collection;
 import java.util.List;
-
-import static datomic.Peer.connect;
-import static datomic.Peer.createDatabase;
-import static datomic.Peer.q;
 
 public class PrintSchema {
 
@@ -42,7 +39,7 @@ public class PrintSchema {
 	 */
 	public static void printAttributeSchema(Database db) {
 		Collection<List<Object>> tuples =
-				q("[:find ?entity :where " +
+				Peer.q("[:find ?entity :where " +
 						"[_ :db.install/attribute ?v]" +
 						"[(.entity $ ?v) ?entity]]", db);
 		printEntities(tuples);
@@ -50,7 +47,7 @@ public class PrintSchema {
 
 	public static void printDatabaseContent(Database db, String dbName) {
 		Collection<List<Object>> results =
-				q("[:find ?entity :in $ ?s :where " +
+				Peer.q("[:find ?entity :in $ ?s :where " +
 						"[?e :db/valueType]" +
 						"[?e :db/ident ?a]" +
 						"[(namespace ?a) ?ns]" +
@@ -61,8 +58,8 @@ public class PrintSchema {
 
 	public static void main(String[] args) {
 		String uri = "datomic:mem://db";
-		createDatabase(uri);
-		Connection conn = connect(uri);
+		Peer.createDatabase(uri);
+		Connection conn = Peer.connect(uri);
 
 //		printAttributeSchema(conn.db());
 		printDatabaseContent(conn.db(), "db");
