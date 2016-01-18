@@ -8,12 +8,12 @@ import datomic.Peer;
 import java.util.Collection;
 import java.util.List;
 
-public class PrintSchema {
+public class SchemaPrinter {
 
 	/**
 	 * Print an entity
 	 */
-	public static void printEntity(Entity entity) {
+	public void printEntity(Entity entity) {
 		for (Object key : entity.keySet()) {
 			System.out.println(key + " = " + entity.get(key));
 		}
@@ -24,7 +24,7 @@ public class PrintSchema {
 	 *
 	 * @param tuples entities in 1-tuples
 	 */
-	public static void printEntities(Collection<List<Object>> tuples) {
+	public void printEntities(Collection<List<Object>> tuples) {
 		for (List<Object> tuple : tuples) {
 			System.out.println();
 			printEntity((Entity) tuple.get(0));
@@ -37,7 +37,7 @@ public class PrintSchema {
 	 *
 	 * @param db database
 	 */
-	public static void printAttributeSchema(Database db) {
+	public void printAttributeSchema(Database db) {
 		Collection<List<Object>> tuples =
 				Peer.q("[:find ?entity :where " +
 						"[_ :db.install/attribute ?v]" +
@@ -45,7 +45,7 @@ public class PrintSchema {
 		printEntities(tuples);
 	}
 
-	public static void printDatabaseContent(Database db, String dbName) {
+	public void printDatabaseContent(Database db, String dbName) {
 		Collection<List<Object>> results =
 				Peer.q("[:find ?entity :in $ ?s :where " +
 						"[?e :db/valueType]" +
@@ -59,10 +59,11 @@ public class PrintSchema {
 	public static void main(String[] args) {
 		String uri = "datomic:mem://db";
 		Peer.createDatabase(uri);
-		Connection conn = Peer.connect(uri);
+		Connection connection = Peer.connect(uri);
 
-//		printAttributeSchema(conn.db());
-		printDatabaseContent(conn.db(), "db");
+		SchemaPrinter schemaPrinter = new SchemaPrinter();
+//		schemaPrinter.printAttributeSchema(connection.db());
+		schemaPrinter.printDatabaseContent(connection.db(), "db");
 	}
 
 }
