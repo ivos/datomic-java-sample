@@ -1,12 +1,19 @@
 package com.github.ivos.datomic.customer;
 
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.Wither;
 
-@Data
+@Getter
+@Wither
+@Builder
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class Customer {
 
-    private String name;
-    private String email;
-    private String phone;
+	private Long id;
+	private String name;
+	private String email;
+	private String phone;
 
 }
