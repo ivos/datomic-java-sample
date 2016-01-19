@@ -55,14 +55,14 @@ public class CustomerServiceTest {
 	}
 
 	@Test
-	public void find() {
+	public void find_ByPhone() {
 		s.create(customer(21));
-		s.create(customer(22).withPhone("123456"));
+		s.create(customer(22).withPhone("phone1"));
 		s.create(customer(23));
-		s.create(customer(24).withPhone("123456"));
+		s.create(customer(24).withPhone("phone1"));
 		s.create(customer(25));
 
-		Customer query = Customer.builder().phone("123456").build();
+		Customer query = Customer.builder().phone("phone1").build();
 
 		List<Customer> customers = s.find(query);
 
@@ -70,8 +70,58 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 22, email=email 22, phone=123456), " +
-				"Customer(id=null, name=name 24, email=email 24, phone=123456)" +
+				"Customer(id=null, name=name 22, email=email 22, phone=phone1), " +
+				"Customer(id=null, name=name 24, email=email 24, phone=phone1)" +
+				"]";
+		assertEquals(expected, customersWithoutIds.toString());
+	}
+
+	@Test
+	public void find_ByEmail() {
+		s.create(customer(31));
+		s.create(customer(32).withEmail("email1@server.com"));
+		s.create(customer(33));
+		s.create(customer(34).withEmail("email1@server.com"));
+		s.create(customer(35));
+
+		Customer query = Customer.builder().email("email1@server.com").build();
+
+		List<Customer> customers = s.find(query);
+
+		List<Customer> customersWithoutIds = customers.stream()
+				.map(customer -> customer.withId(null))
+				.collect(toList());
+		String expected = "[" +
+				"Customer(id=null, name=name 32, email=email1@server.com, phone=phone 32), " +
+				"Customer(id=null, name=name 34, email=email1@server.com, phone=phone 34)" +
+				"]";
+		assertEquals(expected, customersWithoutIds.toString());
+	}
+
+	@Test
+	public void find_ByPhoneAndEmail() {
+		s.create(customer(41));
+		s.create(customer(42).withEmail("email2@server.com").withPhone("phone2"));
+		s.create(customer(43).withEmail("email2@server.com").withPhone("phone2"));
+		s.create(customer(44).withEmail("email2@server.com"));
+		s.create(customer(45).withPhone("phone2"));
+		s.create(customer(46).withEmail("email2@server.com").withPhone("phone2"));
+		s.create(customer(47));
+
+		Customer query = Customer.builder()
+				.email("email2@server.com")
+				.phone("phone2")
+				.build();
+
+		List<Customer> customers = s.find(query);
+
+		List<Customer> customersWithoutIds = customers.stream()
+				.map(customer -> customer.withId(null))
+				.collect(toList());
+		String expected = "[" +
+				"Customer(id=null, name=name 42, email=email2@server.com, phone=phone2), " +
+				"Customer(id=null, name=name 43, email=email2@server.com, phone=phone2), " +
+				"Customer(id=null, name=name 46, email=email2@server.com, phone=phone2)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
