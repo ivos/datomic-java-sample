@@ -6,6 +6,7 @@ import lombok.experimental.Wither;
 @Getter
 @Wither
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode

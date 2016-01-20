@@ -1,5 +1,6 @@
 package com.github.ivos.datomic.customer;
 
+import com.github.ivos.datomic.support.EntityNotFoundException;
 import com.github.ivos.datomic.utils.SchemaSetup;
 import datomic.Connection;
 import datomic.Peer;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class CustomerServiceTest {
 
@@ -43,7 +45,7 @@ public class CustomerServiceTest {
 	}
 
 	@Test
-	public void createGet() {
+	public void create() {
 		Customer customer = customer(11);
 
 		Customer result = service.create(customer);
@@ -53,6 +55,29 @@ public class CustomerServiceTest {
 		Customer saved = service.get(result.getId());
 		String expected = "Customer(id=null, name=name 11, email=email 11, phone=phone 11)";
 		assertEquals("Customer", expected, saved.withId(null).toString());
+	}
+
+	@Test
+	public void get() {
+		Customer customer = customer(11);
+		Long id = service.create(customer).getId();
+
+		Customer result = service.get(id);
+
+		assertNotNull("Result id set", result.getId());
+
+		String expected = "Customer(id=null, name=name 11, email=email 11, phone=phone 11)";
+		assertEquals("Customer", expected, result.withId(null).toString());
+	}
+
+	@Test
+	public void get_NotFound() {
+		try {
+			service.get(-10000999888L);
+			fail("Should fail");
+		} catch (EntityNotFoundException e) {
+			assertEquals("", e.getMessage());
+		}
 	}
 
 	@Test
