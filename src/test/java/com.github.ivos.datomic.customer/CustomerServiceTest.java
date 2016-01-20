@@ -16,7 +16,8 @@ import static org.junit.Assert.assertNotNull;
 public class CustomerServiceTest {
 
 	private static Connection connection;
-	private CustomerService s;
+	private CustomerService service;
+	private CustomerRepository repository;
 
 	@BeforeClass
 	public static void setUpDb() {
@@ -29,8 +30,10 @@ public class CustomerServiceTest {
 
 	@Before
 	public void setUp() {
-		s = new CustomerService();
-		s.setConnection(connection);
+		repository = new CustomerRepository();
+		repository.setConnection(connection);
+		service = new CustomerService();
+		service.setRepository(repository);
 	}
 
 	private Customer customer(int i) {
@@ -45,26 +48,26 @@ public class CustomerServiceTest {
 	public void createGet() {
 		Customer customer = customer(11);
 
-		Customer result = s.create(customer);
+		Customer result = service.create(customer);
 
 		assertNotNull("Result id set", result.getId());
 
-		Customer saved = s.get(result.getId());
+		Customer saved = service.get(result.getId());
 		String expected = "Customer(id=null, name=name 11, email=email 11, phone=phone 11)";
 		assertEquals("Customer", expected, saved.withId(null).toString());
 	}
 
 	@Test
-	public void find_ByPhone() {
-		s.create(customer(21));
-		s.create(customer(22).withPhone("phone1"));
-		s.create(customer(23));
-		s.create(customer(24).withPhone("phone1"));
-		s.create(customer(25));
+	public void list_ByPhone() {
+		service.create(customer(21));
+		service.create(customer(22).withPhone("phone1"));
+		service.create(customer(23));
+		service.create(customer(24).withPhone("phone1"));
+		service.create(customer(25));
 
 		Customer query = Customer.builder().phone("phone1").build();
 
-		List<Customer> customers = s.find(query);
+		List<Customer> customers = service.list(query);
 
 		List<Customer> customersWithoutIds = customers.stream()
 				.map(customer -> customer.withId(null))
@@ -77,16 +80,16 @@ public class CustomerServiceTest {
 	}
 
 	@Test
-	public void find_ByEmail() {
-		s.create(customer(31));
-		s.create(customer(32).withEmail("email1@server.com"));
-		s.create(customer(33));
-		s.create(customer(34).withEmail("email1@server.com"));
-		s.create(customer(35));
+	public void list_ByEmail() {
+		service.create(customer(31));
+		service.create(customer(32).withEmail("email1@server.com"));
+		service.create(customer(33));
+		service.create(customer(34).withEmail("email1@server.com"));
+		service.create(customer(35));
 
 		Customer query = Customer.builder().email("email1@server.com").build();
 
-		List<Customer> customers = s.find(query);
+		List<Customer> customers = service.list(query);
 
 		List<Customer> customersWithoutIds = customers.stream()
 				.map(customer -> customer.withId(null))
@@ -99,21 +102,21 @@ public class CustomerServiceTest {
 	}
 
 	@Test
-	public void find_ByPhoneAndEmail() {
-		s.create(customer(41));
-		s.create(customer(42).withEmail("email2@server.com").withPhone("phone2"));
-		s.create(customer(43).withEmail("email2@server.com").withPhone("phone2"));
-		s.create(customer(44).withEmail("email2@server.com"));
-		s.create(customer(45).withPhone("phone2"));
-		s.create(customer(46).withEmail("email2@server.com").withPhone("phone2"));
-		s.create(customer(47));
+	public void list_ByPhoneAndEmail() {
+		service.create(customer(41));
+		service.create(customer(42).withEmail("email2@server.com").withPhone("phone2"));
+		service.create(customer(43).withEmail("email2@server.com").withPhone("phone2"));
+		service.create(customer(44).withEmail("email2@server.com"));
+		service.create(customer(45).withPhone("phone2"));
+		service.create(customer(46).withEmail("email2@server.com").withPhone("phone2"));
+		service.create(customer(47));
 
 		Customer query = Customer.builder()
 				.email("email2@server.com")
 				.phone("phone2")
 				.build();
 
-		List<Customer> customers = s.find(query);
+		List<Customer> customers = service.list(query);
 
 		List<Customer> customersWithoutIds = customers.stream()
 				.map(customer -> customer.withId(null))
