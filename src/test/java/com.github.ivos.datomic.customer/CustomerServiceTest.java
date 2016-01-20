@@ -4,10 +4,10 @@ import com.github.ivos.datomic.utils.SchemaSetup;
 import datomic.Connection;
 import datomic.Peer;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
@@ -15,22 +15,20 @@ import static org.junit.Assert.assertNotNull;
 
 public class CustomerServiceTest {
 
-	private static Connection connection;
+	private Connection connection;
 	private CustomerService service;
-	private CustomerRepository repository;
 
-	@BeforeClass
-	public static void setUpDb() {
-		String uri = "datomic:mem://sample";
+	@Before
+	public void setUpDb() {
+		String uri = "datomic:mem://" + UUID.randomUUID();
 		Peer.createDatabase(uri);
 		connection = Peer.connect(uri);
 		new SchemaSetup().setupSchema(connection);
 	}
 
-
 	@Before
 	public void setUp() {
-		repository = new CustomerRepository();
+		CustomerRepository repository = new CustomerRepository();
 		repository.setConnection(connection);
 		service = new CustomerService();
 		service.setRepository(repository);
@@ -59,11 +57,11 @@ public class CustomerServiceTest {
 
 	@Test
 	public void list_ByPhone() {
-		service.create(customer(21));
-		service.create(customer(22).withPhone("phone1"));
-		service.create(customer(23));
-		service.create(customer(24).withPhone("phone1"));
-		service.create(customer(25));
+		service.create(customer(11));
+		service.create(customer(12).withPhone("phone1"));
+		service.create(customer(13));
+		service.create(customer(14).withPhone("phone1"));
+		service.create(customer(15));
 
 		Customer query = Customer.builder().phone("phone1").build();
 
@@ -73,19 +71,19 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 22, email=email 22, phone=phone1), " +
-				"Customer(id=null, name=name 24, email=email 24, phone=phone1)" +
+				"Customer(id=null, name=name 12, email=email 12, phone=phone1), " +
+				"Customer(id=null, name=name 14, email=email 14, phone=phone1)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
 
 	@Test
 	public void list_ByEmail() {
-		service.create(customer(31));
-		service.create(customer(32).withEmail("email1@server.com"));
-		service.create(customer(33));
-		service.create(customer(34).withEmail("email1@server.com"));
-		service.create(customer(35));
+		service.create(customer(11));
+		service.create(customer(12).withEmail("email1@server.com"));
+		service.create(customer(13));
+		service.create(customer(14).withEmail("email1@server.com"));
+		service.create(customer(15));
 
 		Customer query = Customer.builder().email("email1@server.com").build();
 
@@ -95,25 +93,25 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 32, email=email1@server.com, phone=phone 32), " +
-				"Customer(id=null, name=name 34, email=email1@server.com, phone=phone 34)" +
+				"Customer(id=null, name=name 12, email=email1@server.com, phone=phone 12), " +
+				"Customer(id=null, name=name 14, email=email1@server.com, phone=phone 14)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
 
 	@Test
 	public void list_ByPhoneAndEmail() {
-		service.create(customer(41));
-		service.create(customer(42).withEmail("email2@server.com").withPhone("phone2"));
-		service.create(customer(43).withEmail("email2@server.com").withPhone("phone2"));
-		service.create(customer(44).withEmail("email2@server.com"));
-		service.create(customer(45).withPhone("phone2"));
-		service.create(customer(46).withEmail("email2@server.com").withPhone("phone2"));
-		service.create(customer(47));
+		service.create(customer(11));
+		service.create(customer(12).withEmail("email1@server.com").withPhone("phone1"));
+		service.create(customer(13).withEmail("email1@server.com").withPhone("phone1"));
+		service.create(customer(14).withEmail("email1@server.com"));
+		service.create(customer(15).withPhone("phone1"));
+		service.create(customer(16).withEmail("email1@server.com").withPhone("phone1"));
+		service.create(customer(17));
 
 		Customer query = Customer.builder()
-				.email("email2@server.com")
-				.phone("phone2")
+				.email("email1@server.com")
+				.phone("phone1")
 				.build();
 
 		List<Customer> customers = service.list(query);
@@ -122,9 +120,9 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 42, email=email2@server.com, phone=phone2), " +
-				"Customer(id=null, name=name 43, email=email2@server.com, phone=phone2), " +
-				"Customer(id=null, name=name 46, email=email2@server.com, phone=phone2)" +
+				"Customer(id=null, name=name 12, email=email1@server.com, phone=phone1), " +
+				"Customer(id=null, name=name 13, email=email1@server.com, phone=phone1), " +
+				"Customer(id=null, name=name 16, email=email1@server.com, phone=phone1)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
