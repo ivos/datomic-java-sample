@@ -13,6 +13,7 @@ import lombok.experimental.Wither;
 public class Customer {
 
 	private Long id;
+	private Long version;
 	private String name;
 	private String email;
 	private String phone;

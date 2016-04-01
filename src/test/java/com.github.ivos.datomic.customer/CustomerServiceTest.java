@@ -53,7 +53,7 @@ public class CustomerServiceTest {
 		assertNotNull("Result id set", result.getId());
 
 		Customer saved = service.get(result.getId());
-		String expected = "Customer(id=null, name=name 11, email=email 11, phone=phone 11)";
+		String expected = "Customer(id=null, version=1, name=name 11, email=email 11, phone=phone 11)";
 		assertEquals("Customer", expected, saved.withId(null).toString());
 	}
 
@@ -66,7 +66,7 @@ public class CustomerServiceTest {
 
 		assertNotNull("Result id set", result.getId());
 
-		String expected = "Customer(id=null, name=name 11, email=email 11, phone=phone 11)";
+		String expected = "Customer(id=null, version=1, name=name 11, email=email 11, phone=phone 11)";
 		assertEquals("Customer", expected, result.withId(null).toString());
 	}
 
@@ -76,7 +76,7 @@ public class CustomerServiceTest {
 			service.get(-10000999888L);
 			fail("Should fail");
 		} catch (EntityNotFoundException e) {
-			assertEquals("", e.getMessage());
+			assertEquals("Entity with id -10000999888 was not found in the database.", e.getMessage());
 		}
 	}
 
@@ -96,8 +96,8 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 12, email=email 12, phone=phone1), " +
-				"Customer(id=null, name=name 14, email=email 14, phone=phone1)" +
+				"Customer(id=null, version=1, name=name 12, email=email 12, phone=phone1), " +
+				"Customer(id=null, version=1, name=name 14, email=email 14, phone=phone1)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
@@ -118,8 +118,8 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 12, email=email1@server.com, phone=phone 12), " +
-				"Customer(id=null, name=name 14, email=email1@server.com, phone=phone 14)" +
+				"Customer(id=null, version=1, name=name 12, email=email1@server.com, phone=phone 12), " +
+				"Customer(id=null, version=1, name=name 14, email=email1@server.com, phone=phone 14)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}
@@ -145,9 +145,9 @@ public class CustomerServiceTest {
 				.map(customer -> customer.withId(null))
 				.collect(toList());
 		String expected = "[" +
-				"Customer(id=null, name=name 12, email=email1@server.com, phone=phone1), " +
-				"Customer(id=null, name=name 13, email=email1@server.com, phone=phone1), " +
-				"Customer(id=null, name=name 16, email=email1@server.com, phone=phone1)" +
+				"Customer(id=null, version=1, name=name 12, email=email1@server.com, phone=phone1), " +
+				"Customer(id=null, version=1, name=name 13, email=email1@server.com, phone=phone1), " +
+				"Customer(id=null, version=1, name=name 16, email=email1@server.com, phone=phone1)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
 	}

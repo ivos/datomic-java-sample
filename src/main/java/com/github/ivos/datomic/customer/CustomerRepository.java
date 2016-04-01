@@ -19,6 +19,7 @@ public class CustomerRepository extends DatomicRepository<Customer> {
 		Object tempId = Peer.tempid(":sample");
 		List tx = Util.list(Util.map(
 				":db/id", tempId,
+				":customer/version", 1L,
 				":customer/name", customer.getName(),
 				":customer/email", customer.getEmail(),
 				":customer/phone", customer.getPhone()

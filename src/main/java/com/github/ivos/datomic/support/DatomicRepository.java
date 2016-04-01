@@ -33,6 +33,9 @@ public class DatomicRepository<E> {
 	public E get(Long id) {
 		Entity entity = connection.db().entity(id).touch();
 		log.debug("Got entity {}", entity);
+		if (entity.keySet().size() == 0) {
+			throw new EntityNotFoundException("Entity with id " + id + " was not found in the database.");
+		}
 		E instance;
 		try {
 			instance = entityClass.newInstance();
@@ -70,7 +73,9 @@ public class DatomicRepository<E> {
 	}
 
 	public static String getFieldAttributeName(Field field, String attributePrefix) {
-		return ":" + attributePrefix + "/" + field.getName();
+		String fieldName = field.getName();
+		String prefix = ("id".equals(fieldName)) ? "db" : attributePrefix;
+		return ":" + prefix + "/" + fieldName;
 	}
 
 	public static Object getFieldValue(Field field, Object object) {
@@ -84,6 +89,7 @@ public class DatomicRepository<E> {
 
 	public static void setFieldValue(Field field, Object object, Object value) {
 		try {
+			log.debug("Set {} on {} to {}.", field, object, value);
 			field.setAccessible(true);
 			field.set(object, value);
 		} catch (IllegalAccessException | IllegalArgumentException e) {
