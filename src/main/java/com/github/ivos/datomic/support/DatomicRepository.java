@@ -36,6 +36,10 @@ public class DatomicRepository<E> {
 		if (entity.keySet().size() == 0) {
 			throw new EntityNotFoundException("Entity with id " + id + " was not found in the database.");
 		}
+		return map(entity);
+	}
+
+	public E map(Entity entity) {
 		E instance;
 		try {
 			instance = entityClass.newInstance();
@@ -75,7 +79,7 @@ public class DatomicRepository<E> {
 	public static String getFieldAttributeName(Field field, String attributePrefix) {
 		String fieldName = field.getName();
 		String prefix = ("id".equals(fieldName)) ? "db" : attributePrefix;
-		return ":" + prefix + "/" + fieldName;
+		return prefix + "/" + fieldName;
 	}
 
 	public static Object getFieldValue(Field field, Object object) {
