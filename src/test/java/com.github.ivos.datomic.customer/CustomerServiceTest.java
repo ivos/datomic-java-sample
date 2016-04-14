@@ -1,6 +1,7 @@
 package com.github.ivos.datomic.customer;
 
 import com.github.ivos.datomic.support.EntityNotFoundException;
+import com.github.ivos.datomic.support.OptimisticLockException;
 import com.github.ivos.datomic.utils.SchemaSetup;
 import datomic.Connection;
 import datomic.Peer;
@@ -150,6 +151,38 @@ public class CustomerServiceTest {
 				"Customer(id=null, version=1, name=name 16, email=email1@server.com, phone=phone1)" +
 				"]";
 		assertEquals(expected, customersWithoutIds.toString());
+	}
+
+	@Test
+	public void update_Ok() {
+		Customer toCreate = customer(11);
+
+		Customer created = service.create(toCreate);
+
+		Customer toUpdate = created.withName("name updated").withPhone("phone updated");
+
+		Customer result = service.update(toUpdate);
+
+		Customer saved = service.get(result.getId());
+		String expected = "Customer(id=null, version=2, name=name updated, email=email 11, phone=phone updated)";
+		assertEquals("Customer", expected, saved.withId(null).toString());
+	}
+
+	@Test
+	public void update_Conflict() {
+		Customer toCreate = customer(11);
+
+		Customer created = service.create(toCreate);
+
+		Customer toUpdate = created.withName("name updated").withPhone("phone updated");
+		toUpdate = toUpdate.withVersion(created.getVersion() - 1);
+
+		try {
+			service.update(toUpdate);
+			fail("Should throw");
+		} catch (OptimisticLockException e) {
+			assertEquals("", e.getMessage());
+		}
 	}
 
 }

@@ -13,6 +13,10 @@ public class CustomerService {
 		return repository.create(customer);
 	}
 
+	public Customer update(Customer customer) {
+		return repository.update(customer);
+	}
+
 	public Customer get(Long id) {
 		return repository.get(id);
 	}
