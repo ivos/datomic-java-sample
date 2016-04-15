@@ -34,7 +34,7 @@ public class CustomerRepository extends DatomicRepository<Customer> {
 			throw new RuntimeException(e);
 		}
 		Long id = (Long) Peer.resolveTempid(connection.db(), txResult.get(Connection.TEMPIDS), tempId);
-//		return customer.withId(id).withVersion(1L);
+
 		Database db = (Database) txResult.get(Connection.DB_AFTER);
 		Entity entity = db.entity(id).touch();
 		return map(entity);
@@ -50,7 +50,7 @@ public class CustomerRepository extends DatomicRepository<Customer> {
 				"customer/phone", customer.getPhone()
 				),
 				Util.list("db.fn/cas", customer.getId(),
-						"customer/version", previous.getVersion(), newVersion)
+						"customer/version", customer.getVersion(), newVersion)
 		);
 		Map txResult;
 		try {
@@ -58,9 +58,9 @@ public class CustomerRepository extends DatomicRepository<Customer> {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
-			throw new OptimisticLockException("TBD");
+			throw new OptimisticLockException("Customer data out of date. Please refresh the data before update.");
 		}
-//		return customer.withVersion(newVersion);
+
 		Database db = (Database) txResult.get(Connection.DB_AFTER);
 		Entity entity = db.entity(customer.getId()).touch();
 		return map(entity);

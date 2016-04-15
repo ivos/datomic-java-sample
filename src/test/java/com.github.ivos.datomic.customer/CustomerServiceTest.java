@@ -181,7 +181,7 @@ public class CustomerServiceTest {
 			service.update(toUpdate);
 			fail("Should throw");
 		} catch (OptimisticLockException e) {
-			assertEquals("", e.getMessage());
+			assertEquals("Customer data out of date. Please refresh the data before update.", e.getMessage());
 		}
 	}
 
