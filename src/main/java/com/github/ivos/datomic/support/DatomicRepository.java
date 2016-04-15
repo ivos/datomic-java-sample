@@ -1,15 +1,20 @@
 package com.github.ivos.datomic.support;
 
 import datomic.Connection;
+import datomic.Database;
 import datomic.Entity;
 import datomic.Peer;
+import datomic.Util;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -17,6 +22,7 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class DatomicRepository<E> {
 
+	private final String partition;
 	private final Class<E> entityClass;
 	private final List<Field> declaredFields;
 	private final String attributePrefix;
@@ -24,7 +30,8 @@ public class DatomicRepository<E> {
 	@Setter
 	protected Connection connection;
 
-	public DatomicRepository(Class<E> entityClass) {
+	public DatomicRepository(String partition, Class<E> entityClass) {
+		this.partition = partition;
 		this.entityClass = entityClass;
 		declaredFields = Arrays.asList(entityClass.getDeclaredFields());
 		attributePrefix = getAttributePrefix(entityClass);
@@ -36,6 +43,71 @@ public class DatomicRepository<E> {
 		if (entity.keySet().size() == 0) {
 			throw new EntityNotFoundException("Entity with id " + id + " was not found in the database.");
 		}
+		return map(entity);
+	}
+
+	public E create(E instance) {
+		Object tempId = Peer.tempid(partition);
+		Map<Object, Object> map = new HashMap<>();
+		for (Field field : declaredFields) {
+			Object value = getFieldValue(field, instance);
+			String name = getFieldAttributeName(field, attributePrefix);
+			if ("db/id".equals(name)) {
+				value = tempId;
+			} else if (name.endsWith("/version")) {
+				value = 1L;
+			}
+			map.put(name, value);
+		}
+		List tx = Util.list(map);
+
+		Map txResult;
+		try {
+			txResult = connection.transact(tx).get();
+		} catch (InterruptedException | ExecutionException e) {
+			throw new RuntimeException(e);
+		}
+		Long id = (Long) Peer.resolveTempid(connection.db(), txResult.get(Connection.TEMPIDS), tempId);
+
+		Database db = (Database) txResult.get(Connection.DB_AFTER);
+		Entity entity = db.entity(id).touch();
+		return map(entity);
+	}
+
+	public E update(E instance) {
+		long instanceVersion = 0, id = 0;
+		Object versionAttribute = null;
+		Map<Object, Object> map = new HashMap<>();
+		for (Field field : declaredFields) {
+			Object value = getFieldValue(field, instance);
+			String name = getFieldAttributeName(field, attributePrefix);
+			if (name.endsWith("/version")) {
+				instanceVersion = (long) value;
+				versionAttribute = name;
+			} else {
+				map.put(name, value);
+				if ("db/id".equals(name)) {
+					id = (long) value;
+				}
+			}
+		}
+		long newVersion = instanceVersion + 1;
+		List tx = Util.list(map,
+				Util.list("db.fn/cas", id, versionAttribute, instanceVersion, newVersion)
+		);
+
+		Map txResult;
+		try {
+			txResult = connection.transact(tx).get();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			throw new OptimisticLockException(entityClass.getSimpleName() +
+					" data out of date. Please refresh the data before update.");
+		}
+
+		Database db = (Database) txResult.get(Connection.DB_AFTER);
+		Entity entity = db.entity(id).touch();
 		return map(entity);
 	}
 
@@ -56,7 +128,7 @@ public class DatomicRepository<E> {
 
 	public List<E> list(E query) {
 		List<Field> fields = getFilledFields(declaredFields, query);
-		String inputClause = getInputClause(fields, attributePrefix);
+		String inputClause = getInputClause(fields);
 		String whereClause = getWhereClause(fields, attributePrefix);
 		List<Object> values = getQueryParameters(fields, query);
 		values.add(0, connection.db());
@@ -111,7 +183,7 @@ public class DatomicRepository<E> {
 		return "?" + field.getName();
 	}
 
-	public static String getInputClause(List<Field> fields, String attributePrefix) {
+	public static String getInputClause(List<Field> fields) {
 		return fields.stream()
 				.map(DatomicRepository::getFieldInputClause)
 				.collect(joining(" "));
